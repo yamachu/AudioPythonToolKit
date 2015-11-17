@@ -3,15 +3,15 @@
 import struct, wave, array
 from soundprocess.consts import *
 
-def bytestr_to_numeric(data, frames, samp_width, channels, endian = None):
-	if channels == 1:
-		return struct.unpack('%c%d%c' % ('' if endian is None else ENDIAN[endian], frames, PFM[samp_width]), data)
+def bytestr_to_numeric(data, frames, sampwidth, channels, file_endian = None):
+	if file_endian is None:
+		return struct.unpack('%d%c' % (frames * channels, PFM[sampwidth]), data)
+	else:
+		return struct.unpack('%c%d%c' % (ENDIAN[file_endian], frames * channels, PFM[sampwidth]), data)
 
 
-def numeric_to_bytestr(data, samp_width, channels):
-	# write endian ...
-	if channels == 1:
-		return array.array('%c' % PFM[samp_width], data).tostring()
+def numeric_to_bytestr(data, sampwidth, file_endian = None):
+	return array.array('%c' % PFM[sampwidth], data).tostring()
 
 
 def read_wav(name):
@@ -20,28 +20,14 @@ def read_wav(name):
 	戻り値:
 		wavファイルの情報(Tuple)，wavを格納したlist
 	例外:
-		モノラルや8，16bitサンプリング以外は未対応
+		8，16bitサンプリング以外は未対応
 	'''
 	wav =  wave.open(name)
-	if not wav.getnchannels() == 1:
-		wav.close()
-		raise Exception('NotSupportChannel, Must mono')
 	sampwidth = wav.getsampwidth()
 	if not (sampwidth == 1 or sampwidth == 2):
 		wav.close()
 		raise Exception('NotSupportSampwidth, Must 8 or 16bit')
 	data = bytestr_to_numeric(wav.readframes(wav.getnframes()), wav.getnframes(), wav.getsampwidth(), wav.getnchannels())
-
-	'''
-	# for Stereo
-	buf = wav.readframes(wav.getnframes())
-	if sampwidth == 1:
-		channel_1 = [struct.unpack('%c' % (PFM[wav.getsampwidth()]), i) for i in buf[::2]]
-		channel_2 = [struct.unpack('%c' % (PFM[wav.getsampwidth()]), i) for i in buf[1::2]]
-	else if sampwidth == 2:
-		channel_1 = [struct.unpack('%c' % (PFM[wav.getsampwidth()]), i+j) for (i,j) in zip(buf[::4], buf[1::4])]
-		channel_2 = [struct.unpack('%c' % (PFM[wav.getsampwidth()]), i+j) for (i,j) in zip(buf[2::4], buf[3::4])]
-	'''
 	info = wav.getparams()
 	wav.close()
 	return (info, data)
@@ -60,11 +46,19 @@ def write_wav(name, buf, param):
 	w.close()
 
 
-def read_raw(name, endian, sampwidth, channels, endian):
+def read_raw(name, sampwidth, channels, file_endian):
 	f = open(name, 'rb')
 	buf = f.read()
 	f.close()
 	frames = len(buf) / (sampwidth * channels)
 
-	return bytestr_to_numeric(buf, frames, sampwidth, channels, endian)
+	return bytestr_to_numeric(buf, frames, sampwidth, channels, file_endian)
+
+
+def write_raw(name, data, sampwidth, file_endian):
+	buf = numeric_to_bytestr(data, sampwidth, file_endian)
+
+	f = open(name, 'wb')
+	f.write(buf)
+	f.close()
 

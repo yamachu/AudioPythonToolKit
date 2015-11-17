@@ -13,16 +13,29 @@ class Sounds():
 
 	"""docstring for Sounds"""
 	def __init__(self, 
-		sampwidth = __sampwitdh, framerate = __framerate, channels = __nchannels,
-		comptype = __comptype, compname = __compname, data = None):
+		channels = __nchannels, sampwidth = __sampwitdh, framerate = __framerate, 
+		frames = 0, comptype = __comptype, compname = __compname, data = None):
 		self.sampwidth = sampwidth
 		self.framerate = framerate
 		self.nchannels = channels
 		self.comptype = comptype
 		self.compname = compname
+		self.frames = frames
 		self.data = data
 		if data is not None:
 			self.frames = len(data) / channels
+
+
+	def get_info(self):
+		return (self.nchannels, self.sampwidth, self.framerate, self.frames,
+			self.comptype, self.compname)
+
+
+	def write_to_file(self, name, endian = None):
+		if name.count(".wav") > 0 or name.count(".wave"):
+			utils.write_wav(name, self.data, self.get_info())
+		else:
+			utils.write_raw(name, self.data, self.sampwidth, endian)
 
 
 	@classmethod
@@ -50,6 +63,6 @@ class Sounds():
 				return cls(data = data, channels = info[0], sampwidth = info[1],
 					framerate = info[2], comptype = info[4], compname = info[5])
 		else:
-			data = utils.read_raw(name, endian, sampwidth, channels, endian)
+			data = utils.read_raw(name, sampwidth, channels, endian)
 			return cls(cls, data = data, channels = channels, sampwidth = sampwidth,
 					framerate = framerate)
