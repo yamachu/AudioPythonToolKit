@@ -44,7 +44,7 @@ if __name__ == '__main__':
 	common_parser.add_argument('-l', '--lower_db', type=float, nargs='?', const=REMOVE_DB, default=REMOVE_DB)
 	common_parser.add_argument('--outplotdir', nargs='?', default=None)
 	common_parser.add_argument('--endian', choices=['l','b'], nargs='?')
-	common_parser.add_argument('-c', '--channels', choices=[1,2], nargs='?')
+	common_parser.add_argument('-c', '--channels', type=int, choices=[1,2], nargs='?')
 	common_parser.add_argument('-f', '--freq', type=int, nargs='?')
 	common_parser.add_argument('--sampwidth', type=int, nargs='?', choices=[1,2])
 

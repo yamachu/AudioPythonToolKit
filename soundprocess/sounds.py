@@ -64,5 +64,5 @@ class Sounds():
 					framerate = info[2], comptype = info[4], compname = info[5])
 		else:
 			data = utils.read_raw(name, sampwidth, channels, endian)
-			return cls(cls, data = data, channels = channels, sampwidth = sampwidth,
+			return cls(data = data, channels = channels, sampwidth = sampwidth,
 					framerate = framerate)
